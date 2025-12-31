@@ -1,0 +1,40 @@
+{
+  "hash": "9687f2de",
+  "configHash": "2d75b974",
+  "lockfileHash": "f1b0e43d",
+  "browserHash": "b13afd90",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "58d69052",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "20703252",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "28631cc5",
+      "needsInterop": true
+    },
+    "xlsx-js-style": {
+      "src": "../../node_modules/xlsx-js-style/dist/xlsx.min.js",
+      "file": "xlsx-js-style.js",
+      "fileHash": "b947f718",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-WTHBYFGY": {
+      "file": "chunk-WTHBYFGY.js"
+    },
+    "chunk-VUNV25KB": {
+      "file": "chunk-VUNV25KB.js"
+    }
+  }
+}

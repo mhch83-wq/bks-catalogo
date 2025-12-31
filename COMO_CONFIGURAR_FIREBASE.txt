@@ -1,0 +1,107 @@
+═══════════════════════════════════════════════════════════════
+  CÓMO CONFIGURAR FIREBASE - PASO A PASO MUY SIMPLE
+═══════════════════════════════════════════════════════════════
+
+PASO 1: CREAR PROYECTO EN FIREBASE
+───────────────────────────────────
+
+1. Abre tu navegador y ve a: https://console.firebase.google.com/
+
+2. Si te pide, inicia sesión con tu cuenta de Google
+
+3. Haz clic en el botón "Add project" (o "Agregar proyecto" si está en español)
+
+4. Pon un nombre para tu proyecto, por ejemplo: "bks-catalogo"
+
+5. Sigue los pasos:
+   - Puedes desactivar Google Analytics si no lo necesitas
+   - Haz clic en "Create project" (Crear proyecto)
+   - Espera a que termine (puede tardar un minuto)
+   - Haz clic en "Continue" (Continuar)
+
+
+PASO 2: HABILITAR FIRESTORE DATABASE
+─────────────────────────────────────
+
+1. En la página principal de Firebase, busca en el menú lateral izquierdo
+   "Firestore Database" y haz clic
+
+2. Haz clic en el botón "Create database"
+
+3. Te preguntará en qué modo empezar:
+   - Elige "Start in test mode" (Empezar en modo de prueba)
+   - Haz clic en "Next"
+
+4. Te preguntará la ubicación:
+   - Elige una cercana a ti (por ejemplo: "europe-west" si estás en Europa)
+   - Haz clic en "Enable"
+   - Espera a que termine (puede tardar un minuto)
+
+
+PASO 3: REGISTRAR TU APLICACIÓN WEB
+────────────────────────────────────
+
+1. En la página principal de Firebase, busca un ícono que parece:  </> 
+   (es un símbolo de código con un símbolo de mayor y menor)
+   
+   O también puedes:
+   - Hacer clic en el ícono de engranaje ⚙️ que está arriba a la izquierda
+   - Seleccionar "Project settings"
+   - Bajar hasta "Your apps"
+   - Si no hay ninguna app web, haz clic en el ícono </>
+
+2. Te pedirá un nombre para la app, pon por ejemplo: "BKS Catálogo"
+
+3. Haz clic en "Register app"
+
+
+PASO 4: COPIAR LAS CREDENCIALES
+────────────────────────────────
+
+1. Después de registrar la app, verás un código que se ve así:
+
+   const firebaseConfig = {
+     apiKey: "AIzaSyC...",
+     authDomain: "tu-proyecto.firebaseapp.com",
+     projectId: "tu-proyecto",
+     storageBucket: "tu-proyecto.appspot.com",
+     messagingSenderId: "123456789",
+     appId: "1:123456789:web:abcdef"
+   }
+
+2. Copia cada valor (las cosas entre comillas) y pégalo en el archivo:
+   catalogo-bks-web-v10.1/src/firebase.ts
+   
+   Reemplaza los "PEGA_AQUI..." con los valores que copiaste
+
+
+PASO 5: LISTO
+─────────────
+
+1. Guarda el archivo firebase.ts
+
+2. Ejecuta: npm run dev
+
+3. ¡Ya está! Ahora las canciones se sincronizarán en la nube
+
+
+═══════════════════════════════════════════════════════════════
+  EJEMPLO DE CÓMO QUEDARÍA EL ARCHIVO
+═══════════════════════════════════════════════════════════════
+
+Antes:
+  apiKey: "PEGA_AQUI_TU_API_KEY",
+  authDomain: "PEGA_AQUI_TU_PROJECT_ID.firebaseapp.com",
+
+Después (con tus valores reales):
+  apiKey: "AIzaSyC1234567890abcdefghijklmnopqrstuvwxyz",
+  authDomain: "bks-catalogo.firebaseapp.com",
+
+═══════════════════════════════════════════════════════════════
+
+Si tienes problemas, verifica que:
+✓ Hiciste todos los pasos en orden
+✓ Copiaste los valores correctos (incluyendo las comillas)
+✓ Habilitaste Firestore Database
+✓ Guardaste el archivo después de editar
+
