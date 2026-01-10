@@ -105,3 +105,4 @@ Si tienes problemas, verifica que:
 ✓ Habilitaste Firestore Database
 ✓ Guardaste el archivo después de editar
 
+

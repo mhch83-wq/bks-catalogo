@@ -49,3 +49,4 @@ Una vez desplegado:
 - ✅ Tabs Libres/Colocadas
 - ✅ Sincronización en tiempo real con Firebase
 
+

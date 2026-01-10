@@ -2,11 +2,11 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import * as XLSX from 'xlsx-js-style'
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore'
-import { db, isFirebaseConfigured } from './firebase'
+import { db } from './firebase'
 
 // Función para forzar migración de localStorage a Firebase
 async function forceMigrateToFirebase(key: string, songs: Cancion[]) {
-  if (!isFirebaseConfigured || !db) {
+  if (!db) {
     console.error('Firebase no está configurado')
     return false
   }
@@ -90,8 +90,8 @@ function useFirebaseStore(key: string, initial: Cancion[]) {
     if (isInitialized.current) return
     isInitialized.current = true
 
-    // Si Firebase no está configurado o db es null, usar solo localStorage
-    if (!isFirebaseConfigured || !db) {
+    // Si db es null, usar solo localStorage
+    if (!db) {
       setIsLoading(false)
       return
     }
@@ -216,8 +216,8 @@ function useFirebaseStore(key: string, initial: Cancion[]) {
         console.error('❌ Error guardando en localStorage:', err)
       }
       
-      // Si Firebase está configurado, también guardar ahí
-      if (isFirebaseConfigured && db) {
+      // Guardar en Firebase
+      if (db) {
         try {
           const docRef = doc(db, 'catalogo', key)
           lastSavedTimestamp.current = Date.now()
@@ -236,8 +236,6 @@ function useFirebaseStore(key: string, initial: Cancion[]) {
           console.error('❌ Error creando referencia de Firebase:', error)
           ignoreNextSnapshot.current = false
         }
-      } else {
-        console.log('⚠️ Firebase no disponible, usando solo localStorage')
       }
       
       return updated
@@ -283,7 +281,7 @@ function pauseCurrentAudio(newPlayerId: string){
   }
 }
 
-export default function App(){
+export default function App({ onLogout }: { onLogout?: () => Promise<void> }){
   const [songs, setSongs, isLoadingSongs] = useFirebaseStore('catalogo-bks-v4', [])
   const [tab, setTab] = useState<'libres'|'colocadas'>('libres')
   const [query, setQuery] = useState('')
@@ -314,7 +312,7 @@ export default function App(){
   }
   
   async function migrateToFirebase(){
-    if(!isFirebaseConfigured || !db){
+    if(!db){
       setToast('Firebase no está configurado')
       setTimeout(()=>setToast(null), 3000)
       return
@@ -913,6 +911,39 @@ export default function App(){
             <option value="estilo">Estilo (A-Z)</option>
             <option value="prioridad">Prioridad</option>
           </select>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0',
+                transition: 'all 0.2s ease',
+                outline: 'none',
+                flexShrink: 0,
+                opacity: 0.6
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.6'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Cerrar sesión"
+            >
+              {/* Icono de encendido/apagado */}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                <line x1="12" y1="2" x2="12" y2="12"></line>
+              </svg>
+            </button>
+          )}
           <button onClick={()=>document.getElementById('xlsx-import')?.click()} style={{background:'none', color:'#333', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Importar XLSX">↑</button>
           <button onClick={exportToExcel} style={{background:'none', color:'#333', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Exportar a Excel">↓</button>
           <button onClick={migrateToFirebase} style={{background:'none', color:'#007a3a', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.7, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.7'}} title="Migrar datos a Firebase">☁️</button>

@@ -1,5 +1,10 @@
-
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-createRoot(document.getElementById('root')!).render(<App />)
+import AuthGate from './AuthGate'
+
+createRoot(document.getElementById('root')!).render(
+  <AuthGate>
+    {(onLogout) => <App onLogout={onLogout} />}
+  </AuthGate>
+)

@@ -113,3 +113,4 @@ Si tienes problemas:
 3. Revisa la consola del navegador para errores
 4. Verifica que las reglas de Firestore permitan lectura/escritura
 
+
