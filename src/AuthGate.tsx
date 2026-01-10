@@ -17,6 +17,13 @@ export default function AuthGate({ children }: AuthGateProps) {
 
   // Listener único de onAuthStateChanged - fuente de verdad
   useEffect(() => {
+    if (!auth) {
+      console.error('❌ Firebase Auth no está disponible. Verifica las variables de entorno en Cloudflare Pages.')
+      setError('Firebase no está configurado. Verifica las variables de entorno en Cloudflare Pages.')
+      setLoading(false)
+      return
+    }
+    
     console.log('🔧 Configurando onAuthStateChanged listener...')
     
     let isFirstAuthCheck = true
@@ -76,8 +83,9 @@ export default function AuthGate({ children }: AuthGateProps) {
       setIsLoggingIn(true)
       
       if (!auth || !googleProvider) {
-        setError('Firebase Auth no está configurado correctamente')
+        setError('Firebase Auth no está configurado. Verifica las variables de entorno en Cloudflare Pages.')
         console.error('❌ Auth o GoogleProvider no están disponibles')
+        console.error('   Asegúrate de que las variables de entorno VITE_FIREBASE_* estén configuradas en Cloudflare Pages')
         setIsLoggingIn(false)
         return
       }
