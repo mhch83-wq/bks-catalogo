@@ -69,7 +69,7 @@ try {
   createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <AuthGate>
-        {(onLogout) => <App onLogout={onLogout} />}
+        {(onLogout, userRole) => <App onLogout={onLogout} userRole={userRole} />}
       </AuthGate>
     </ErrorBoundary>
   )

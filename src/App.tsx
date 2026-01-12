@@ -281,7 +281,10 @@ function pauseCurrentAudio(newPlayerId: string){
   }
 }
 
-export default function App({ onLogout }: { onLogout?: () => Promise<void> }){
+import { UserRole } from './AuthGate'
+
+export default function App({ onLogout, userRole = 'viewer' }: { onLogout?: () => Promise<void>; userRole?: UserRole }){
+  const isAdmin = userRole === 'admin'
   const [songs, setSongs, isLoadingSongs] = useFirebaseStore('catalogo-bks-v4', [])
   const [tab, setTab] = useState<'libres'|'colocadas'>('libres')
   const [query, setQuery] = useState('')
@@ -577,7 +580,7 @@ export default function App({ onLogout }: { onLogout?: () => Promise<void> }){
                     const trimmed = String(value).trim()
                     if(trimmed === 'Cantante masculino') song[fieldName] = 'M'
                     else if(trimmed === 'Cantante femenina') song[fieldName] = 'F'
-                    else if(trimmed === 'M' || trimmed === 'F' || trimmed === 'M+F') song[fieldName] = trimmed
+                    else if(trimmed === 'M' || trimmed === 'F' || trimmed === 'M+F' || trimmed === 'none') song[fieldName] = trimmed
                   } else if(fieldName === 'porcentajeAutoriaManuEditorial' || fieldName === 'porcentajeRoyaltiesMasterManu' || fieldName === 'ingresosAutoriaManuEditorial' || fieldName === 'ingresosMasterManu' || fieldName === 'totalAutoriaGenerado' || fieldName === 'totalMasterGenerado'){
                     const numValue = Number(value)
                     song[fieldName] = !isNaN(numValue) ? numValue : undefined
@@ -944,23 +947,23 @@ export default function App({ onLogout }: { onLogout?: () => Promise<void> }){
               </svg>
             </button>
           )}
-          <button onClick={()=>document.getElementById('xlsx-import')?.click()} style={{background:'none', color:'#333', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Importar XLSX">↑</button>
+          {isAdmin && <button onClick={()=>document.getElementById('xlsx-import')?.click()} style={{background:'none', color:'#333', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Importar XLSX">↑</button>}
           <button onClick={exportToExcel} style={{background:'none', color:'#333', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Exportar a Excel">↓</button>
-          <button onClick={migrateToFirebase} style={{background:'none', color:'#007a3a', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.7, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.7'}} title="Migrar datos a Firebase">☁️</button>
-          <button onClick={restoreFromBackup} style={{background:'none', color:'#333', border:'none', fontSize:20, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Restaurar backup">↺</button>
-          <button onClick={clearAllSongs} style={{background:'none', color:'#d70015', border:'none', fontSize:12, fontWeight:400, cursor:'pointer', opacity:0.7, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.7'}} title="Borrar todas las canciones">🗑</button>
-          <button onClick={newSong} style={{background:'none', color:'#0071e3', border:'none', fontSize:24, fontWeight:300, cursor:'pointer', opacity:0.8, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.8'}} title="Nueva canción">+</button>
+          {isAdmin && <button onClick={migrateToFirebase} style={{background:'none', color:'#007a3a', border:'none', fontSize:16, fontWeight:400, cursor:'pointer', opacity:0.7, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.7'}} title="Migrar datos a Firebase">☁️</button>}
+          {isAdmin && <button onClick={restoreFromBackup} style={{background:'none', color:'#333', border:'none', fontSize:20, fontWeight:400, cursor:'pointer', opacity:0.6, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}} title="Restaurar backup">↺</button>}
+          {isAdmin && <button onClick={clearAllSongs} style={{background:'none', color:'#d70015', border:'none', fontSize:12, fontWeight:400, cursor:'pointer', opacity:0.7, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.7'}} title="Borrar todas las canciones">🗑</button>}
+          {isAdmin && <button onClick={newSong} style={{background:'none', color:'#0071e3', border:'none', fontSize:24, fontWeight:300, cursor:'pointer', opacity:0.8, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='1'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.8'}} title="Nueva canción">+</button>}
         </div>
 
         <div style={{display:tab==='libres' ? 'block' : 'none'}}>
-          <List data={libres} onOpen={(c)=>{setEditing(c); setOpen(true)}} onUpdateSong={saveSong} />
+          <List data={libres} onOpen={(c)=>{setEditing(c); setOpen(true)}} onUpdateSong={isAdmin ? saveSong : undefined} isReadOnly={!isAdmin} />
         </div>
         <div style={{display:tab==='colocadas' ? 'block' : 'none'}}>
-          <List data={colocadas} onOpen={(c)=>{setEditing(c); setOpen(true)}} onUpdateSong={saveSong} />
+          <List data={colocadas} onOpen={(c)=>{setEditing(c); setOpen(true)}} onUpdateSong={isAdmin ? saveSong : undefined} isReadOnly={!isAdmin} />
         </div>
       </div>
 
-      {open && editing && <Detail cancion={editing} onClose={()=>setOpen(false)} onSave={(c)=>{saveSong(c); setOpen(false)}} onRemove={removeSong} />}
+      {open && editing && <Detail cancion={editing} onClose={()=>setOpen(false)} onSave={(c)=>{saveSong(c); setOpen(false)}} onRemove={removeSong} isReadOnly={!isAdmin} />}
       
       {showBackups && (
         <div className="backdrop" onClick={()=>setShowBackups(false)}>
@@ -1193,7 +1196,7 @@ function GenreSelector({ genero, onChange }: { genero?: string; onChange: (newGe
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   
-  const options = ['M', 'F', 'M+F']
+  const options = ['M', 'F', 'M+F', 'none']
   
   const handleSelect = (value: string) => {
     onChange(value)
@@ -1386,7 +1389,7 @@ function PrioritySelector({ prioridad, onChange }: { prioridad?: string; onChang
   )
 }
 
-function List({ data, onOpen, onUpdateSong }: { data: Cancion[]; onOpen: (c: Cancion) => void; onUpdateSong: (song: Cancion) => void }) {
+function List({ data, onOpen, onUpdateSong, isReadOnly = false }: { data: Cancion[]; onOpen: (c: Cancion) => void; onUpdateSong?: (song: Cancion) => void; isReadOnly?: boolean }) {
   // Verificar el estado de forma más robusta
   const hasData = data.length > 0
   const isLibres = hasData && data[0]?.estado === 'Libre'
@@ -1411,25 +1414,37 @@ function List({ data, onOpen, onUpdateSong }: { data: Cancion[]; onOpen: (c: Can
               <tr key={c.id}>
                 {isLibres && (
                   <td style={{padding: '8px'}}>
-                    <PrioritySelector 
-                      prioridad={c.prioridad} 
-                      onChange={(newPrioridad) => onUpdateSong({...c, prioridad: newPrioridad})}
-                    />
+                    {isReadOnly || !onUpdateSong ? (
+                      <span>{c.prioridad || '—'}</span>
+                    ) : (
+                      <PrioritySelector 
+                        prioridad={c.prioridad} 
+                        onChange={(newPrioridad) => onUpdateSong({...c, prioridad: newPrioridad})}
+                      />
+                    )}
                   </td>
                 )}
                 <td><a href="#" onClick={(e) => { e.preventDefault(); onOpen(c) }}>{c.titulo}</a></td>
                 <td>
-                  <InlineEditor 
-                    value={c.estilo} 
-                    onChange={(newEstilo) => onUpdateSong({...c, estilo: newEstilo})}
-                  />
+                  {isReadOnly || !onUpdateSong ? (
+                    <span>{c.estilo || '—'}</span>
+                  ) : (
+                    <InlineEditor 
+                      value={c.estilo} 
+                      onChange={(newEstilo) => onUpdateSong({...c, estilo: newEstilo})}
+                    />
+                  )}
                 </td>
                 {isLibres && (
                   <td>
-                    <GenreSelector 
-                      genero={c.genero} 
-                      onChange={(newGenero) => onUpdateSong({...c, genero: newGenero})}
-                    />
+                    {isReadOnly || !onUpdateSong ? (
+                      <span>{c.genero || '—'}</span>
+                    ) : (
+                      <GenreSelector 
+                        genero={c.genero} 
+                        onChange={(newGenero) => onUpdateSong({...c, genero: newGenero})}
+                      />
+                    )}
                   </td>
                 )}
                 <td className="audio">{src ? <AudioPlayer key={c.id} id={c.id} src={src} /> : <span className="muted">—</span>}</td>
@@ -1565,12 +1580,12 @@ function Field({label, children}:{label:string; children:React.ReactNode}){
   return (<div className="field"><div className="label">{label}</div>{children}</div>)
 }
 
-function ExpandText({value, onChange, placeholder}:{value?:string; onChange:(v:string)=>void; placeholder?:string}){
+function ExpandText({value, onChange, placeholder, disabled}:{value?:string; onChange:(v:string)=>void; placeholder?:string; disabled?:boolean}){
   const [open, setOpen] = useState(false)
   return (
     <div style={{position:'relative'}}>
-      <textarea className="input textarea" rows={1} placeholder={placeholder} value={value||''} onChange={e=>onChange(e.target.value)} style={{paddingRight:'28px'}} />
-      <button 
+      <textarea className="input textarea" rows={1} placeholder={placeholder} value={value||''} onChange={e=>onChange(e.target.value)} style={{paddingRight:'28px'}} disabled={disabled} />
+      {!disabled && <button 
         onClick={()=>setOpen(true)} 
         style={{
           position:'absolute',
@@ -1590,8 +1605,8 @@ function ExpandText({value, onChange, placeholder}:{value?:string; onChange:(v:s
         onMouseLeave={e=>{e.currentTarget.style.opacity='0.6'}}
       >
         ✎
-      </button>
-      {open && (<div className="overlay" onClick={()=>setOpen(false)}>
+      </button>}
+      {open && !disabled && (<div className="overlay" onClick={()=>setOpen(false)}>
         <div className="overlay-card" onClick={e=>e.stopPropagation()}>
           <div className="label">Editor de texto</div>
           <textarea value={value||''} onChange={e=>onChange(e.target.value)} className="input" style={{minHeight:'40vh'}} />
@@ -1605,7 +1620,7 @@ function ExpandText({value, onChange, placeholder}:{value?:string; onChange:(v:s
   )
 }
 
-function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:string)=>void; placeholder?:string}){
+function LetraField({value, onChange, placeholder, disabled}:{value?:string; onChange:(v:string)=>void; placeholder?:string; disabled?:boolean}){
   const [open, setOpen] = useState(false)
   
   // Detectar si es URL
@@ -1639,7 +1654,7 @@ function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:s
               <circle cx="11" cy="7" r="1.5" fill="currentColor"/>
             </svg>
           </a>
-          <button 
+          {!disabled && <button 
             onClick={()=>setOpen(true)}
             style={{
               background:'transparent',
@@ -1655,9 +1670,9 @@ function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:s
             title="Editar URL"
           >
             ✎
-          </button>
+          </button>}
         </div>
-        {open && (<div className="overlay" onClick={()=>setOpen(false)}>
+        {open && !disabled && (<div className="overlay" onClick={()=>setOpen(false)}>
           <div className="overlay-card" onClick={e=>e.stopPropagation()}>
             <div className="label">URL de la letra</div>
             <div style={{marginBottom:8, fontSize:12, color:'var(--sub)'}}>
@@ -1690,9 +1705,10 @@ function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:s
         placeholder={placeholder} 
         value={value||''} 
         onChange={e=>onChange(e.target.value)} 
-        style={{paddingRight:'28px'}} 
+        style={{paddingRight:'28px'}}
+        disabled={disabled}
       />
-      <button 
+      {!disabled && <button 
         onClick={()=>setOpen(true)} 
         style={{
           position:'absolute',
@@ -1713,8 +1729,8 @@ function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:s
         title="Expandir editor"
       >
         ✎
-      </button>
-      {open && (<div className="overlay" onClick={()=>setOpen(false)}>
+      </button>}
+      {open && !disabled && (<div className="overlay" onClick={()=>setOpen(false)}>
         <div className="overlay-card" onClick={e=>e.stopPropagation()}>
           <div className="label">{isUrl ? 'URL de la letra' : 'Editor de texto'}</div>
           <div style={{marginBottom:8, fontSize:12, color:'var(--sub)'}}>
@@ -1742,11 +1758,11 @@ function LetraField({value, onChange, placeholder}:{value?:string; onChange:(v:s
   )
 }
 
-function SplitAutoria({value, onChange}:{value?:string; onChange:(v:string)=>void}){
+function SplitAutoria({value, onChange, disabled}:{value?:string; onChange:(v:string)=>void; disabled?:boolean}){
   const lines = (value||'').split('\n').filter(Boolean)
   return (
     <div>
-      <textarea className="input textarea" rows={2} placeholder="Escribe 1 autor por línea:&#10;Manu 40%&#10;Javi 35%&#10;Peer 15%&#10;BKS 10%" value={value||''} onChange={e=>onChange(e.target.value)} />
+      <textarea className="input textarea" rows={2} placeholder="Escribe 1 autor por línea:&#10;Manu 40%&#10;Javi 35%&#10;Peer 15%&#10;BKS 10%" value={value||''} onChange={e=>onChange(e.target.value)} disabled={disabled} />
       <div style={{marginTop:6}}>
         {lines.length>0 && <div className="muted" style={{marginBottom:6}}>Previsualización:</div>}
         {lines.map((l,i)=>(<span key={i} className="chip">{l}</span>))}
@@ -1755,7 +1771,7 @@ function SplitAutoria({value, onChange}:{value?:string; onChange:(v:string)=>voi
   )
 }
 
-function Detail({ cancion, onClose, onSave, onRemove }:{ cancion:Cancion; onClose:()=>void; onSave:(c:Cancion)=>void; onRemove:(id:string)=>void }){
+function Detail({ cancion, onClose, onSave, onRemove, isReadOnly = false }:{ cancion:Cancion; onClose:()=>void; onSave:(c:Cancion)=>void; onRemove:(id:string)=>void; isReadOnly?: boolean }){
   const [draft, setDraft] = useState<Cancion>({...cancion})
   function S<K extends keyof Cancion>(k:K, v:Cancion[K]){ setDraft(prev=>({...prev,[k]:v})) }
 
@@ -1822,16 +1838,16 @@ function Detail({ cancion, onClose, onSave, onRemove }:{ cancion:Cancion; onClos
 
           <div className="section">
             <h3>Datos generales</h3>
-            <Field label="Título"><input className="input small" value={draft.titulo} onChange={e=>S('titulo', e.target.value)} /></Field>
+            <Field label="Título"><input className="input small" value={draft.titulo} onChange={e=>S('titulo', e.target.value)} disabled={isReadOnly} /></Field>
             <Field label="Estado">
-              <select className="input small" value={draft.estado} onChange={e=>S('estado', e.target.value as Estado)}>
+              <select className="input small" value={draft.estado} onChange={e=>S('estado', e.target.value as Estado)} disabled={isReadOnly}>
                 <option>Libre</option><option>Colocada</option>
               </select>
             </Field>
             {draft.estado==='Libre' ? (
               <>
                 <Field label="Prioridad">
-                  <select className="input small" value={draft.prioridad||''} onChange={e=>S('prioridad', e.target.value || undefined)}>
+                  <select className="input small" value={draft.prioridad||''} onChange={e=>S('prioridad', e.target.value || undefined)} disabled={isReadOnly}>
                     <option value="">Sin prioridad</option>
                     <option value="A">Alta</option>
                     <option value="A1">Media Alta</option>
@@ -1839,25 +1855,25 @@ function Detail({ cancion, onClose, onSave, onRemove }:{ cancion:Cancion; onClos
                     <option value="C">Baja</option>
                   </select>
                 </Field>
-                <Field label="Estilo"><input className="input small" value={draft.estilo||''} onChange={e=>S('estilo', e.target.value)} /></Field>
-                <Field label="Cliente objetivo"><input className="input small" value={draft.clienteObjetivo||''} onChange={e=>S('clienteObjetivo', e.target.value)} /></Field>
-                <Field label="Fecha de creación"><input type="date" className="input small" value={draft.fechaCreacion||''} onChange={e=>S('fechaCreacion', e.target.value)} /></Field>
-                <Field label="Tempo/Key"><input className="input small" placeholder="100 BPM — A minor" value={draft.tempoKey||''} onChange={e=>S('tempoKey', e.target.value)} /></Field>
-                <Field label="Duración"><input className="input small" placeholder="3:45" value={draft.duracion||''} onChange={e=>S('duracion', e.target.value)} /></Field>
-                <Field label="Letra"><LetraField value={draft.letra} onChange={(v)=>S('letra', v)} placeholder="URL o texto de la letra" /></Field>
-                <Field label="¿Registrada?"><input type="checkbox" checked={!!draft.registrada} onChange={e=>S('registrada', e.target.checked)} /></Field>
+                <Field label="Estilo"><input className="input small" value={draft.estilo||''} onChange={e=>S('estilo', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Cliente objetivo"><input className="input small" value={draft.clienteObjetivo||''} onChange={e=>S('clienteObjetivo', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Fecha de creación"><input type="date" className="input small" value={draft.fechaCreacion||''} onChange={e=>S('fechaCreacion', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Tempo/Key"><input className="input small" placeholder="100 BPM — A minor" value={draft.tempoKey||''} onChange={e=>S('tempoKey', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Duración"><input className="input small" placeholder="3:45" value={draft.duracion||''} onChange={e=>S('duracion', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Letra"><LetraField value={draft.letra} onChange={(v)=>S('letra', v)} placeholder="URL o texto de la letra" disabled={isReadOnly} /></Field>
+                <Field label="¿Registrada?"><input type="checkbox" checked={!!draft.registrada} onChange={e=>S('registrada', e.target.checked)} disabled={isReadOnly} /></Field>
               </>
             ) : (
               <>
-                <Field label="Artista"><input className="input small" value={draft.artista||''} onChange={e=>S('artista', e.target.value)} /></Field>
-                <Field label="Fecha lanzamiento"><input type="date" className="input small" value={draft.fechaLanzamiento||''} onChange={e=>S('fechaLanzamiento', e.target.value)} /></Field>
-                <Field label="Estilo"><input className="input small" value={draft.estilo||''} onChange={e=>S('estilo', e.target.value)} /></Field>
-                <Field label="Fecha de creación"><input type="date" className="input small" value={draft.fechaCreacion||''} onChange={e=>S('fechaCreacion', e.target.value)} /></Field>
-                <Field label="Tempo/Key"><input className="input small" placeholder="100 BPM — A minor" value={draft.tempoKey||''} onChange={e=>S('tempoKey', e.target.value)} /></Field>
-                <Field label="Duración"><input className="input small" placeholder="3:45" value={draft.duracion||''} onChange={e=>S('duracion', e.target.value)} /></Field>
-                <Field label="Letra"><LetraField value={draft.letra} onChange={(v)=>S('letra', v)} placeholder="URL o texto de la letra" /></Field>
-                <Field label="¿Registrada?"><input type="checkbox" checked={!!draft.registrada} onChange={e=>S('registrada', e.target.checked)} /></Field>
-                <Field label="Sociedad gestión"><input className="input small" value={draft.sociedadGestion||''} onChange={e=>S('sociedadGestion', e.target.value)} /></Field>
+                <Field label="Artista"><input className="input small" value={draft.artista||''} onChange={e=>S('artista', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Fecha lanzamiento"><input type="date" className="input small" value={draft.fechaLanzamiento||''} onChange={e=>S('fechaLanzamiento', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Estilo"><input className="input small" value={draft.estilo||''} onChange={e=>S('estilo', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Fecha de creación"><input type="date" className="input small" value={draft.fechaCreacion||''} onChange={e=>S('fechaCreacion', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Tempo/Key"><input className="input small" placeholder="100 BPM — A minor" value={draft.tempoKey||''} onChange={e=>S('tempoKey', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Duración"><input className="input small" placeholder="3:45" value={draft.duracion||''} onChange={e=>S('duracion', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Letra"><LetraField value={draft.letra} onChange={(v)=>S('letra', v)} placeholder="URL o texto de la letra" disabled={isReadOnly} /></Field>
+                <Field label="¿Registrada?"><input type="checkbox" checked={!!draft.registrada} onChange={e=>S('registrada', e.target.checked)} disabled={isReadOnly} /></Field>
+                <Field label="Sociedad gestión"><input className="input small" value={draft.sociedadGestion||''} onChange={e=>S('sociedadGestion', e.target.value)} disabled={isReadOnly} /></Field>
               </>
             )}
           </div>
@@ -1866,20 +1882,21 @@ function Detail({ cancion, onClose, onSave, onRemove }:{ cancion:Cancion; onClos
             <div className="section">
               <h3>Demo / Pitch</h3>
               <Field label="Género">
-                <select className="input small" value={draft.genero||''} onChange={e=>S('genero', e.target.value)}>
+                <select className="input small" value={draft.genero||''} onChange={e=>S('genero', e.target.value)} disabled={isReadOnly}>
                   <option value="">Seleccionar...</option>
                   <option value="M">M</option>
                   <option value="F">F</option>
                   <option value="M+F">M+F</option>
+                  <option value="none">none</option>
                 </select>
               </Field>
-              <Field label="Editorial"><input className="input small" value={draft.editorial||''} onChange={e=>S('editorial', e.target.value)} /></Field>
-              <Field label="Contrato edición"><LetraField value={draft.contratoEdicionLibres} onChange={(v)=>S('contratoEdicionLibres', v)} placeholder="URL o texto" /></Field>
-              <Field label="Reparto"><SplitAutoria value={draft.splitAutoria} onChange={(v)=>S('splitAutoria', v)} /></Field>
-              <Field label="Vocalista demo"><input className="input small" value={draft.vocalistaDemo||''} onChange={e=>S('vocalistaDemo', e.target.value)} /></Field>
-              <Field label="Productor/es"><input className="input small" value={draft.productoresDemo||''} onChange={e=>S('productoresDemo', e.target.value)} /></Field>
-              <Field label="Link MP3 (Dropbox)"><LetraField value={draft.linkMP3Demo} onChange={(v)=>S('linkMP3Demo', v)} placeholder="URL o texto" /></Field>
-              <Field label="Notas"><ExpandText value={draft.notas} onChange={(v)=>S('notas', v)} placeholder="Pitch + ideas internas" /></Field>
+              <Field label="Editorial"><input className="input small" value={draft.editorial||''} onChange={e=>S('editorial', e.target.value)} disabled={isReadOnly} /></Field>
+              <Field label="Contrato edición"><LetraField value={draft.contratoEdicionLibres} onChange={(v)=>S('contratoEdicionLibres', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
+              <Field label="Reparto"><SplitAutoria value={draft.splitAutoria} onChange={(v)=>S('splitAutoria', v)} disabled={isReadOnly} /></Field>
+              <Field label="Vocalista demo"><input className="input small" value={draft.vocalistaDemo||''} onChange={e=>S('vocalistaDemo', e.target.value)} disabled={isReadOnly} /></Field>
+              <Field label="Productor/es"><input className="input small" value={draft.productoresDemo||''} onChange={e=>S('productoresDemo', e.target.value)} disabled={isReadOnly} /></Field>
+              <Field label="Link MP3 (Dropbox)"><LetraField value={draft.linkMP3Demo} onChange={(v)=>S('linkMP3Demo', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
+              <Field label="Notas"><ExpandText value={draft.notas} onChange={(v)=>S('notas', v)} placeholder="Pitch + ideas internas" disabled={isReadOnly} /></Field>
             </div>
           )}
 
@@ -1887,46 +1904,57 @@ function Detail({ cancion, onClose, onSave, onRemove }:{ cancion:Cancion; onClos
             <>
               <div className="section">
                 <h3>Editoriales y Autoría</h3>
-                <Field label="Editoriales"><input className="input small" value={draft.editoriales||''} onChange={e=>S('editoriales', e.target.value)} placeholder="Separar con comas" /></Field>
-                <Field label="Reparto"><SplitAutoria value={draft.splitAutoria} onChange={(v)=>S('splitAutoria', v)} /></Field>
-                <Field label="% autoría Manu/editorial (%)"><input type="text" className="input small" value={draft.porcentajeAutoriaManuEditorial ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('porcentajeAutoriaManuEditorial', v===''?0:Number(v))}} /></Field>
-                <Field label="Ingresos autoría Manu/editorial (€)"><input type="text" className="input small" value={draft.ingresosAutoriaManuEditorial ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('ingresosAutoriaManuEditorial', v===''?0:Number(v))}} /></Field>
+                <Field label="Editoriales"><input className="input small" value={draft.editoriales||''} onChange={e=>S('editoriales', e.target.value)} placeholder="Separar con comas" disabled={isReadOnly} /></Field>
+                <Field label="Reparto"><SplitAutoria value={draft.splitAutoria} onChange={(v)=>S('splitAutoria', v)} disabled={isReadOnly} /></Field>
+                <Field label="% autoría Manu/editorial (%)"><input type="text" className="input small" value={draft.porcentajeAutoriaManuEditorial ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('porcentajeAutoriaManuEditorial', v===''?0:Number(v))}} disabled={isReadOnly} /></Field>
+                <Field label="Ingresos autoría Manu/editorial (€)"><input type="text" className="input small" value={draft.ingresosAutoriaManuEditorial ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('ingresosAutoriaManuEditorial', v===''?0:Number(v))}} disabled={isReadOnly} /></Field>
                 <Field label="Total autoría generado (€)"><input className="input small" disabled value={ totalAut ?? '' } /></Field>
-                <Field label="Contratos de edición (URLs)"><LetraField value={draft.contratosEdicion} onChange={(v)=>S('contratosEdicion', v)} placeholder="URL o texto" /></Field>
+                <Field label="Contratos de edición (URLs)"><LetraField value={draft.contratosEdicion} onChange={(v)=>S('contratosEdicion', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
               </div>
 
               <div className="section">
                 <h3>Máster</h3>
-                <Field label="Propiedad máster"><input className="input small" value={draft.propiedadMaster||''} onChange={e=>S('propiedadMaster', e.target.value)} /></Field>
-                <Field label="Reparto máster"><input className="input small" value={draft.splitMaster||''} onChange={e=>S('splitMaster', e.target.value)} /></Field>
-                <Field label="% royalties máster Manu (%)"><input type="text" className="input small" value={draft.porcentajeRoyaltiesMasterManu ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('porcentajeRoyaltiesMasterManu', v===''?0:Number(v))}} /></Field>
-                <Field label="Ingresos máster Manu (€)"><input type="text" className="input small" value={draft.ingresosMasterManu ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('ingresosMasterManu', v===''?0:Number(v))}} /></Field>
+                <Field label="Propiedad máster"><input className="input small" value={draft.propiedadMaster||''} onChange={e=>S('propiedadMaster', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Reparto máster"><input className="input small" value={draft.splitMaster||''} onChange={e=>S('splitMaster', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="% royalties máster Manu (%)"><input type="text" className="input small" value={draft.porcentajeRoyaltiesMasterManu ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('porcentajeRoyaltiesMasterManu', v===''?0:Number(v))}} disabled={isReadOnly} /></Field>
+                <Field label="Ingresos máster Manu (€)"><input type="text" className="input small" value={draft.ingresosMasterManu ?? ''} onChange={e=>{const v=e.target.value; if(v===''||/^\d+(\.\d*)?$/.test(v)) S('ingresosMasterManu', v===''?0:Number(v))}} disabled={isReadOnly} /></Field>
                 <Field label="Total máster generado (€)"><input className="input small" disabled value={ totalMas ?? '' } /></Field>
               </div>
 
               <div className="section">
                 <h3>Producción y Distribución</h3>
-                <Field label="Productor/es"><input className="input small" value={draft.productoresFinales||''} onChange={e=>S('productoresFinales', e.target.value)} /></Field>
-                <Field label="Contrato producción (URL)"><LetraField value={draft.contratoProduccion} onChange={(v)=>S('contratoProduccion', v)} placeholder="URL o texto" /></Field>
-                <Field label="Link stems/máster"><LetraField value={draft.linkStemsMaster} onChange={(v)=>S('linkStemsMaster', v)} placeholder="URL o texto" /></Field>
-                <Field label="ISRC"><input className="input small" value={draft.isrc||''} onChange={e=>S('isrc', e.target.value)} /></Field>
-                <Field label="ISWC"><input className="input small" value={draft.iswc||''} onChange={e=>S('iswc', e.target.value)} /></Field>
-                <Field label="Link MP3 (Dropbox)"><LetraField value={draft.linkMP3Master} onChange={(v)=>S('linkMP3Master', v)} placeholder="URL o texto" /></Field>
-                <Field label="Notas"><ExpandText value={draft.notas} onChange={(v)=>S('notas', v)} placeholder="Notas" /></Field>
+                <Field label="Productor/es"><input className="input small" value={draft.productoresFinales||''} onChange={e=>S('productoresFinales', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Contrato producción (URL)"><LetraField value={draft.contratoProduccion} onChange={(v)=>S('contratoProduccion', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
+                <Field label="Link stems/máster"><LetraField value={draft.linkStemsMaster} onChange={(v)=>S('linkStemsMaster', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
+                <Field label="ISRC"><input className="input small" value={draft.isrc||''} onChange={e=>S('isrc', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="ISWC"><input className="input small" value={draft.iswc||''} onChange={e=>S('iswc', e.target.value)} disabled={isReadOnly} /></Field>
+                <Field label="Link MP3 (Dropbox)"><LetraField value={draft.linkMP3Master} onChange={(v)=>S('linkMP3Master', v)} placeholder="URL o texto" disabled={isReadOnly} /></Field>
+                <Field label="Notas"><ExpandText value={draft.notas} onChange={(v)=>S('notas', v)} placeholder="Notas" disabled={isReadOnly} /></Field>
               </div>
             </>
           )}
 
-          <div className="section">
-            <div style={{borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:12, display:'flex', justifyContent:'flex-end', gap:8}}>
-              <button className="btn ghost" style={{fontSize:12, padding:'6px 12px'}} onClick={onClose}>Cancelar</button>
-              <button className="btn" style={{fontSize:12, padding:'6px 12px'}} onClick={()=>onSave({...draft, totalAutoriaGenerado:totalAut, totalMasterGenerado:totalMas})}>Guardar</button>
-            </div>
-          </div>
+          {!isReadOnly && (
+            <>
+              <div className="section">
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:12, display:'flex', justifyContent:'flex-end', gap:8}}>
+                  <button className="btn ghost" style={{fontSize:12, padding:'6px 12px'}} onClick={onClose}>Cancelar</button>
+                  <button className="btn" style={{fontSize:12, padding:'6px 12px'}} onClick={()=>onSave({...draft, totalAutoriaGenerado:totalAut, totalMasterGenerado:totalMas})}>Guardar</button>
+                </div>
+              </div>
 
-          <div style={{textAlign:'right', marginTop:4, opacity:0.4, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='0.7'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.4'}}>
-            <button style={{backgroundColor:'transparent', color:'#ff6b6b', border:'none', fontSize:14, padding:'4px', cursor:'pointer'}} onClick={handleRemove}>🗑️</button>
-          </div>
+              <div style={{textAlign:'right', marginTop:4, opacity:0.4, transition:'opacity 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.opacity='0.7'}} onMouseLeave={e=>{e.currentTarget.style.opacity='0.4'}}>
+                <button style={{backgroundColor:'transparent', color:'#ff6b6b', border:'none', fontSize:14, padding:'4px', cursor:'pointer'}} onClick={handleRemove}>🗑️</button>
+              </div>
+            </>
+          )}
+          {isReadOnly && (
+            <div className="section">
+              <div style={{borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:12, display:'flex', justifyContent:'flex-end', gap:8}}>
+                <button className="btn ghost" style={{fontSize:12, padding:'6px 12px'}} onClick={onClose}>Cerrar</button>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
